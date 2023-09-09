@@ -1,55 +1,9 @@
-import datetime
-from collections import defaultdict
-from flask import Flask, render_template, request, redirect, url_for
-
-app = Flask(__name__)
-habits = ["Test habit", "Test habit 2"]
-completions = defaultdict(list)
+from flask import Flask
+from routes import pages
 
 
-@app.context_processor
-def add_calc_date_range():
-    def date_range(start: datetime.date):
-        dates = [start + datetime.timedelta(days=diff) for diff in range(-3, 4)]
-        return dates
+def create_app():
+    app = Flask(__name__)
+    app.register_blueprint(pages)
 
-    return {"date_range": date_range}
-
-
-@app.route('/')
-def index():  # put application's code here
-    date_str = request.args.get("date")
-    if date_str:
-        selected_date = datetime.date.fromisoformat(date_str)
-    else:
-        selected_date = datetime.date.today()
-
-    return render_template(
-        "index.html",
-        habits=habits,
-        selected_date=selected_date,
-        completions=completions[selected_date],
-        title="Habit Tracker - Home",
-    )
-
-
-@app.route("/add", methods=["GET", "POST"])
-def add_habit():
-    if request.form:
-        habits.append(request.form.get("habit"))
-    return render_template("add_habit.html",
-                           title="Habit Tracker - Add Habit",
-                           selected_date=datetime.date.today())
-
-
-@app.route("/complete", methods=["POST"])
-def complete():
-    date_string = request.form.get("date")
-    habit = request.form.get("habitName")
-    print(f"habit: { habit }")
-    date = datetime.date.fromisoformat(date_string)
-    completions[date].append(habit)
-    print(completions)
-
-    return redirect(url_for("index", date=date_string))
-
+    return app
